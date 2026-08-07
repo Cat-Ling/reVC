@@ -58,6 +58,9 @@ bool CdStreamAddImage(char const *path);
 char *CdStreamGetImageName(int cd);
 void CdStreamRemoveImages(void);
 int32 CdStreamGetNumImages(void);
+
+#define CDSTREAM_CUSTOM_INDEX 0xFF
+uint32 CdStreamAddCustomFile(char const *path);
 #endif
 
 #ifdef FLUSHABLE_STREAMING

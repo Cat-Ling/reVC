@@ -28,6 +28,7 @@
 #include "Debug.h"
 #include "Hud.h"
 #include "SceneEdit.h"
+#include "Modloader.h"
 #include "Pad.h"
 #include "PlayerPed.h"
 #include "Radar.h"
@@ -130,6 +131,26 @@ void
 CustomFrontendOptionsPopulate(void)
 {
 	// Most of custom options are done statically in MenuScreensCustom.cpp, we add them here only if they're dependent to extra files
+
+	if (gNumModFolders > 0) {
+		int modloaderMenu = FrontendScreenAdd("ML_MAIN", MENUPAGE_OPTIONS, 25, true, nil);
+		aScreens[modloaderMenu].layout->startX = 40;
+		aScreens[modloaderMenu].layout->startY = 78;
+
+		FrontendOptionSetCursor(MENUPAGE_OPTIONS, -2, false);
+		FrontendOptionAddBuiltinAction("ML_MAIN", 0, 0, MENUALIGN_CENTER, MENUACTION_CHANGEMENU, modloaderMenu, SAVESLOT_NONE);
+
+		FrontendOptionSetCursor(modloaderMenu, 0, false);
+		const char *off_on[] = { "FEM_OFF", "FEM_ON" };
+		
+		int maxFolders = gNumModFolders > 17 ? 17 : gNumModFolders;
+		for (int i = 0; i < maxFolders; i++) {
+			char gxtKey[8];
+			snprintf(gxtKey, sizeof(gxtKey), "ML_%d", i);
+			FrontendOptionAddSelect(gxtKey, 0, 0, MENUALIGN_LEFT, off_on, 2, &gModFolders[i].enabled, false, nil, "Modloader", gModFolders[i].name);
+		}
+		FrontendOptionAddBuiltinAction("FEDS_TB", 0, 0, MENUALIGN_CENTER, MENUACTION_GOBACK, MENUPAGE_NONE, SAVESLOT_NONE);
+	}
 
 	int fd;
 	// These work only if we have neo folder, so they're dynamically added

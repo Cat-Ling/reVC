@@ -34,12 +34,14 @@ GetNumberOfMenuOptions(int screen)
 uint8
 GetLastMenuScreen()
 {
+	int8 page = -1;
 	for (int i = 0; i < MENUPAGES; i++) {
-		if (i != MENUPAGE_NONE && strcmp(aScreens[i].m_ScreenName, "") == 0 && aScreens[i].m_PreviousPage == MENUPAGE_NONE) {
-			return i;
-		}
+		if (i != MENUPAGE_NONE && strcmp(aScreens[i].m_ScreenName, "") == 0 && aScreens[i].m_PreviousPage == MENUPAGE_NONE)
+			break;
+
+		++page;
 	}
-	return MENUPAGES - 1;
+	return page;
 }
 
 int8 RegisterNewScreen(const char *name, int prevPage, ReturnPrevPageFunc returnPrevPageFunc)

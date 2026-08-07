@@ -9,6 +9,8 @@
 #include "Text.h"
 #include "Timer.h"
 
+#include "Modloader.h"
+#include "Font.h"
 wchar WideErrorString[25];
 
 CText TheText;
@@ -129,6 +131,21 @@ CText::Get(const char *key)
 #else
 		outstr = mission_keyArray.Search(key, &result);
 #endif
+
+	if (!result && !strncmp(key, "ML_", 3)) {
+		static wchar ml_buffer[64];
+		if (!strcmp(key, "ML_MAIN")) {
+			AsciiToUnicode("Modloader", ml_buffer);
+			return ml_buffer;
+		} else {
+			int folderIndex = atoi(&key[3]);
+			if (folderIndex >= 0 && folderIndex < gNumModFolders) {
+				AsciiToUnicode(gModFolders[folderIndex].name, ml_buffer);
+				return ml_buffer;
+			}
+		}
+	}
+
 	return outstr;
 }
 

@@ -236,6 +236,10 @@ enum eMenuScreen
 #endif
 
 	MENUPAGE_OUTRO, // Originally 34, but CFO needs last screen to be empty to count number of menu pages
+	MENUPAGE_CUSTOM_1,
+	MENUPAGE_CUSTOM_2,
+	MENUPAGE_CUSTOM_3,
+	MENUPAGE_CUSTOM_4,
 	MENUPAGES
 };
 

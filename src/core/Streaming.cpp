@@ -396,6 +396,9 @@ CStreaming::LoadCdDirectory(void)
 		LoadCdDirectory(dirname, i);
 	}
 
+	extern void ModloaderLoadCdDirectory();
+	ModloaderLoadCdDirectory();
+
 	ms_lastImageRead = 0;
 	ms_imageSize /= CDSTREAM_SECTOR_SIZE;
 }

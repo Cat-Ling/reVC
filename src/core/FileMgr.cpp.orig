@@ -296,8 +296,10 @@ CFileMgr::OpenFile(const char *file, const char *mode)
 {
 	const char* actualFile = ModloaderGetOverridePath(file);
 	if (actualFile != file) {
-		debug("CFileMgr::OpenFile: %s (actual: %s)", file, actualFile);
-		return myfopen(actualFile, mode);
+		char absPath[1024];
+		snprintf(absPath, sizeof(absPath), "%s%s", ms_rootDirName, actualFile);
+		debug("CFileMgr::OpenFile: %s (actual: %s)", file, absPath);
+		return myfopen(absPath, mode);
 	}
 	debug("CFileMgr::OpenFile: %s", file);
 	return myfopen(file, mode);

@@ -387,7 +387,7 @@ void ControllerTypeAfterChange(int8 before, int8 after)
 }
 #endif
 
-CMenuScreenCustom aScreens[] = {
+CMenuScreenCustom aScreens[MENUPAGES] = {
 	// MENUPAGE_STATS = 0
 	{ "FEH_STA", MENUPAGE_NONE, nil, nil,
 		MENUACTION_GOBACK, "FEDS_TB", {nil, SAVESLOT_NONE, MENUPAGE_NONE}, 190, 320, MENUALIGN_RIGHT,
@@ -695,7 +695,7 @@ CMenuScreenCustom aScreens[] = {
    },
 
 	// MENUPAGE_NONE = 33
-	{ "", 0, nil, nil, },
+	{ "", MENUPAGE_NONE, nil, nil, },
 
 #ifdef GAMEPAD_MENU
 #ifdef GTA_HANDHELD
@@ -812,7 +812,7 @@ CMenuScreenCustom aScreens[] = {
 #endif
 
 	// MENUPAGE_OUTRO = 34
-	{ "", 0, nil, nil, },
+	{ "", MENUPAGE_NONE, nil, nil, },
 };
 
 #endif

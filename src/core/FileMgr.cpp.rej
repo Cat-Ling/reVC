@@ -1,0 +1,15 @@
+--- FileMgr.cpp
++++ FileMgr.cpp
+@@ -300,8 +300,10 @@
+ 			debug("CFileMgr::OpenFile: %s (actual: %s)", file, absPath);
+ 			return myfopen(absPath, mode);
+ 		}
+-		debug("CFileMgr::OpenFile: %s", file);
+-		return myfopen(file, mode);
++		char path[1024];
++		snprintf(path, sizeof(path), "%s%s", ms_dirName, file);
++		debug("CFileMgr::OpenFile: %s", path);
++		return myfopen(path, mode);
+ 	}
+ 	
+ 	int

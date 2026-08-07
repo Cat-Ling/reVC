@@ -118,6 +118,21 @@ int32 gNumChannels;
 int32 gImgFiles[MAX_CDIMAGES]; // -1: error 0:unused otherwise: fd
 char *gImgNames[MAX_CDIMAGES];
 
+#define MAX_CUSTOM_FILES 16384
+char* gCustomFiles[MAX_CUSTOM_FILES];
+int32 gNumCustomFiles = 0;
+
+uint32 CdStreamAddCustomFile(char const *path)
+{
+    if (gNumCustomFiles >= MAX_CUSTOM_FILES)
+        return 0;
+    
+    gCustomFiles[gNumCustomFiles] = strdup(path);
+    uint32 offset = (CDSTREAM_CUSTOM_INDEX << 24) | gNumCustomFiles;
+    gNumCustomFiles++;
+    return offset;
+}
+
 #ifndef ONE_THREAD_PER_CHANNEL
 pthread_t _gCdStreamThread;
 #ifndef ANDROID
@@ -337,9 +352,14 @@ CdStreamRead(int32 channel, void *buffer, uint32 offset, uint32 size)
 
 	lastPosnRead = size + offset;
 
-	ASSERT( _GET_INDEX(offset) < MAX_CDIMAGES );
-	int32 hImage = gImgFiles[_GET_INDEX(offset)];
-	ASSERT( hImage > 0 );
+	int32 hImage;
+	if (_GET_INDEX(offset) == CDSTREAM_CUSTOM_INDEX) {
+		hImage = -1;
+	} else {
+		ASSERT( _GET_INDEX(offset) < MAX_CDIMAGES );
+		hImage = gImgFiles[_GET_INDEX(offset)];
+		ASSERT( hImage > 0 );
+	}
 
 	CdReadInfo *pChannel = &gpReadInfo[channel];
 	ASSERT( pChannel != nil );
@@ -551,16 +571,39 @@ void *CdStreamThread(void *param)
 #endif
 		if ( pChannel->nStatus == STREAM_NONE )
 		{
-			ASSERT(pChannel->hFile >= 0);
+			ASSERT(pChannel->hFile >= -2);
 			ASSERT(pChannel->pBuffer != nil );
 
-			lseek(pChannel->hFile, (size_t)pChannel->nSectorOffset * (size_t)CDSTREAM_SECTOR_SIZE, SEEK_SET);
-			if (read(pChannel->hFile, pChannel->pBuffer, pChannel->nSectorsToRead * CDSTREAM_SECTOR_SIZE) == -1) {
-				// pChannel->nSectorsToRead == 0 at this point means we wanted to flush channel
-				// STREAM_WAITING is a little hack to make CStreaming not process this data
-				pChannel->nStatus = pChannel->nSectorsToRead == 0 ? STREAM_WAITING : STREAM_ERROR;
+			if (pChannel->hFile == -2) {
+				const char* path = gCustomFiles[pChannel->nSectorOffset];
+				int fd = open(path, O_RDONLY);
+				if (fd == -1) {
+					extern char* casepath(char const* path, bool applyPrefix);
+					char* real = casepath(path, false);
+					if (real) {
+						fd = open(real, O_RDONLY);
+						free(real);
+					}
+				}
+				if (fd != -1) {
+					if (read(fd, pChannel->pBuffer, pChannel->nSectorsToRead * CDSTREAM_SECTOR_SIZE) == -1) {
+						pChannel->nStatus = STREAM_ERROR;
+					} else {
+						pChannel->nStatus = STREAM_NONE;
+					}
+					close(fd);
+				} else {
+					pChannel->nStatus = STREAM_ERROR;
+				}
 			} else {
-				pChannel->nStatus = STREAM_NONE;
+				lseek(pChannel->hFile, (size_t)pChannel->nSectorOffset * (size_t)CDSTREAM_SECTOR_SIZE, SEEK_SET);
+				if (read(pChannel->hFile, pChannel->pBuffer, pChannel->nSectorsToRead * CDSTREAM_SECTOR_SIZE) == -1) {
+					// pChannel->nSectorsToRead == 0 at this point means we wanted to flush channel
+					// STREAM_WAITING is a little hack to make CStreaming not process this data
+					pChannel->nStatus = pChannel->nSectorsToRead == 0 ? STREAM_WAITING : STREAM_ERROR;
+				} else {
+					pChannel->nStatus = STREAM_NONE;
+				}
 			}
 		}
 
@@ -668,6 +711,11 @@ CdStreamRemoveImages(void)
 	}
 
 	gNumImages = 0;
+
+	for (int i = 0; i < gNumCustomFiles; i++) {
+		free(gCustomFiles[i]);
+	}
+	gNumCustomFiles = 0;
 }
 
 int32
